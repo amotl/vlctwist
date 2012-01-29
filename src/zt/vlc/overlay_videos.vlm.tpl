@@ -1,26 +1,43 @@
-# overlay
+# Overlay videos with alpha compositing and rotation on top of VLC.
+# Copyright 2012 Andreas Motl
+# Licensed under the Apache License, Version 2.0 (the "License")
+
+
+# ---------
+#  overlay
+# ---------
+
 new overlay broadcast
+
 setup overlay input ${overlay}
-# works, but alphamask won't be fine due to missing "chroma=YUVA"
 
-setup overlay output #transcode{vcodec=mp4v,vb=1500,scale=1,vfilter=rotate{angle=${angle}}}:duplicate{dst=mosaic-bridge{id=1,${masksize}vfilter=alphamask{mask=${maskfile}}},select=video}
+setup overlay output #transcode{vcodec=mp4v,vb=1500,scale=1,vfilter=rotate{angle=${angle}}}:duplicate{dst=mosaic-bridge{id=1,x=${position_x},y=${position_y},${masksize_real}chroma=YUVA,vfilter=alphamask{mask=${maskfile}}},select=video}
 
-# crashes arbitrarily/often
-#setup overlay output #transcode{vcodec=mp4v,vb=1500,scale=1,vfilter=rotate{angle=${angle}}}:duplicate{dst=mosaic-bridge{id=1,${masksize}chroma=YUVA,vfilter=alphamask{mask="${maskfile}"}},select=video}
 setup overlay enabled
 
-# background
+
+# ------------
+#  background
+# ------------
+
 new background broadcast
-setup background input ${background}
-#setup background output #transcode{vcodec=mp4v,vb=4096,sfilter="mosaic"}:bridge-in:standard{access=file,mux=ps,dst="${output}"}${display}
 
-setup background output #transcode{vcodec=mp4v,vb=4096,sfilter="mosaic"}:bridge-in:duplicate{dst=standard{access=file,mux=ps,dst="${output}"},dst=display}
+# input channel
+${input_channel}
 
-#setup background output #transcode{vcodec=mp4v,vb=4096,sfilter="mosaic"}:bridge-in:display
+# Keep aspect ratio
+setup background option mosaic-keep-aspect-ratio
+
+# Keep original size
+setup background option mosaic-keep-picture
+
+setup background output #transcode{vcodec=mp4v,vb=4096,sfilter="mosaic"}:bridge-in:duplicate{dst=standard{access=file,mux=ps,dst="${output}"}${display}}
+
 setup background enabled
 
-# kick off
+
+# ----------
+#  kick off
+# ----------
 control overlay play
 control background play
-
-#shutdown
