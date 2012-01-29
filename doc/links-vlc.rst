@@ -1,41 +1,6 @@
-=============
-Related links
-=============
-
-ffmpeg docs
 ===========
-- | Using FFmpeg to add and watermark / overlay on a video
-  | http://www.corbellconsulting.com/2010/07/using-ffmpeg-to-add-and-watermark-overlay-on-a-video-2/
-- http://ffmpeg.org/libavfilter.html
-- http://wrzasq.pl/blog/69.html
-- http://www.idude.net/index.php/how-to-watermark-a-video-using-ffmpeg/
-- http://ffmpeg.arrozcru.org/forum/viewtopic.php?f=8&t=1400
-- http://www-i6.informatik.rwth-aachen.de/~dreuw/videotools.html
-- http://stackoverflow.com/questions/5890738/overlaying-video-with-ffmpeg
-- http://ffmpeg.org/libavfilter.html#overlay-1
-- http://ffmpeg.arrozcru.org/forum/viewtopic.php?f=8&t=1400
-- http://mysql-apache-php.com/ffmpeg-install.htm
-- http://ffmpeg.zeranoe.com/builds/
-- http://frei0r.dyne.org/gallery
-- http://stackoverflow.com/questions/3937387/rotating-videos-with-ffmpeg
-- http://stackoverflow.com/questions/3123848/how-to-rotate-video-usinf-ffmpeg
-- http://stephenjungels.com/jungels.net/articles/ffmpeg-howto.html
-- http://blog.adruna.org/2010/12/ffmpeg-video-rotation-filter/
-- http://stuphi.co.uk/wordpress/video-encoding-recipies/
-- http://www.morethantechnical.com/2011/02/08/how-to-rotate-a-video-using-mencoder-and-ffmpeg-and-live-to-tell-the-tale/
-- 
-
-Avidemux
-========
-- http://blog.zen-dreams.com/blog-en/2008/05/08/retourner-une-video-sous-linux/
-- http://voyager8.blogspot.com/2009/11/using-avidemux-to-rotate-video-movie-in.html
-- 
-
-mencoder docs
-=============
-- | Overlay Images on Video Using MPlayer and MEncoder
-  | http://www.linuxjournal.com/content/overlay-images-video-using-mplayer-and-mencoder
-
+Links » VLC
+===========
 
 VLC docs
 ========
@@ -67,6 +32,17 @@ Misc
 - http://wiki.videolan.org/VLC_command-line_help
 - http://wiki.videolan.org/Documentation:Play_HowTo/Advanced_Use_of_VLC
 - http://wiki.videolan.org/OSXCompile
+- http://www.videolan.org/doc/play-howto/en/ch04.html
+- http://juliensimon.blogspot.com/2008/12/howto-setting-up-vod-server-with-vlc.html
+- http://www.videolan.org/doc/streaming-howto/en/ch04.html
+- http://wiki.videolan.org/Documentation:Streaming_HowTo/Command_Line_Examples
+- http://devio.wordpress.com/2010/11/02/converting-vdr-files-to-ts-with-vlc-windows-7/
+- http://stackoverflow.com/questions/8817684/how-to-add-access-control-allow-origin-in-vlc-http-interface
+- http://www.videolan.org/developers/vlc/share/lua/README.txt
+- http://wiki.videolan.org/Documentation:Play_HowTo/Building_Lua_Playlist_Scripts
+- http://forum.videolan.org/viewtopic.php?f=11&t=81907
+- http://physweb.bgu.ac.il/FreeWebSite/Idan/VLC%20Portable/App/vlc/lua/intf/telnet.lua
+
 
 
 VLC issues
@@ -105,6 +81,13 @@ Misc
 - Rotate and Crop stream from Batch file?: http://forum.videolan.org/viewtopic.php?f=14&t=97248
 - Howto rotate & crop ?: https://vlmc.org/viewtopic.php?f=4&t=91936
 
+Quitting
+--------
+- http://forum.videolan.org/viewtopic.php?f=11&t=25349
+- http://forum.videolan.org/viewtopic.php?f=12&t=95635
+- http://physweb.bgu.ac.il/FreeWebSite/Idan/VLC%20Portable/App/vlc/lua/intf/rc.lua
+- http://permalink.gmane.org/gmane.comp.video.videolan.vlc.devel/77157
+- http://mailman.videolan.org/pipermail/vlc-devel/2011-March/079232.html
 
 
 "main filter error: couldn't set priority of non-existent thread" & "Segmentation fault"
