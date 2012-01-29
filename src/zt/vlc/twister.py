@@ -211,7 +211,7 @@ def main(output, background, overlay,
         maskfile=None, width=0, height=0,
         watch=False, segfaults=20, timeout=120, verbose=False, debug=False):
     """
-    Overlay videos with alpha compositing and rotation using VLC.
+    Overlay videos with alpha compositing and rotation using VLM from VLC.
     
     @param vlc -V --vlc path to vlc executable
     @param position_x -x --position-x x-position of the overlay (default: 0)
