@@ -9,10 +9,10 @@ Create and activate isolated python environment::
 
 Install prerequisites::
 
-    pip install opterator
+    pip install git+git://github.com/amotl/opterator.git
     pip install PIL
 
 Run::
 
     cd src
-    ./vlctwist.sh
+    ./vlctwist_example.sh
