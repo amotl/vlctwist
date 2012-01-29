@@ -36,6 +36,7 @@ class Tail(object):
     See also:
         - http://code.activestate.com/recipes/157035/
         - http://pypi.python.org/pypi/tailer/
+        - http://pypi.python.org/pypi/follow/
 
     """
 
