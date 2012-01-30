@@ -47,7 +47,7 @@ class VideoInfo(object):
         cmd = \
             [self.vlc_bin] + \
             shlex.split('--intf lua --lua-intf dumpmeta --no-video-title --no-media-library -V dummy -A dummy') + \
-            [self.videofile]
+            [self.videofile, 'vlc://quit']
         process = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         self.stdout, self.stderr = process.communicate()
 
@@ -66,3 +66,5 @@ class VideoInfo(object):
         m = re.match('.*Resolution: ([\dx]+).*$', self.stderr, re.DOTALL)
         if m:
             return map(int, m.group(1).split('x'))
+        else:
+            raise LookupError('Could not grok size from video information, video="%s"' % self.videofile)

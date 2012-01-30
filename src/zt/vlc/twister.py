@@ -21,9 +21,14 @@ import time
 import logging
 from string import Template
 from tempfile import NamedTemporaryFile
-from opterator import opterate
 from PIL import Image
+import pkg_resources
 
+from opterator import opterate
+from zt.net.webcommand.server import webify
+from zt.net.webcommand.client import proxify
+
+from zt.util.log import setup_logging
 from zt.vlc.runner import VlcRunner, VlcSafeRunner
 from zt.vlc.videoinfo import VideoInfo
 from zt.graphics.alpha import AlphaMask
@@ -31,6 +36,8 @@ from zt.graphics.alpha import AlphaMask
 logger = logging.getLogger(__name__)
 
 class VideoTwisterBase(object):
+
+    vlm_template = ''
 
     def __init__(self, **kwargs):
         """Create VideoTwister.
@@ -42,45 +49,45 @@ class VideoTwisterBase(object):
         self.options = kwargs
         self.mungle_options()
 
-    def run_vlc_with_vlm(self, vlm_template):
+    def run_vlc_with_vlm(self):
         """Process VLM template and start VLC with it."""
 
         logger.debug("VLM options: %s" % self.options)
-        with open(vlm_template) as f:
 
-            # interpolate options into VLM template
-            vlmdata = Template(f.read()).safe_substitute(self.options)
-            vlmdata = Template(vlmdata).safe_substitute(self.options)
+        # interpolate options into VLM template
+        vlmdata = Template(self.vlm_template).safe_substitute(self.options)
+        vlmdata = Template(vlmdata).safe_substitute(self.options)
 
-            # write VLM file to disk
-            vlmfile = NamedTemporaryFile(delete = not self.options['debug'])
-            vlmfile.write(vlmdata)
-            vlmfile.flush()
+        # write VLM file to disk
+        vlmfile = NamedTemporaryFile(delete = not self.options['debug'])
+        vlmfile.write(vlmdata)
+        vlmfile.flush()
 
-            logger.debug("VLM file (%s):\n%s" % (vlmfile.name, vlmdata))
+        logger.debug("VLM file (%s):\n%s" % (vlmfile.name, vlmdata))
 
-            # compute VLC options
-            args = ['--vlm-conf', vlmfile.name]
-            if not self.options['watch']:
-                args += ['--intf', 'dummy']
+        # compute VLC options
+        args = ['--vlm-conf', vlmfile.name]
+        if not self.options['watch']:
+            args += ['--intf', 'dummy']
 
-            # run VLC
-            #vlc = VlcRunner(cmd, self.options['vlc'], verbose = self.options['verbose'])
+        # run VLC
+        #vlc = VlcRunner(cmd, self.options['vlc'], verbose = self.options['verbose'])
 
-            # run VLC, retrying some more for compensating segfaults when doing alpha compositing - WTF!?
-            vlc = VlcSafeRunner(
-                args,
-                vlc_bin = self.options['vlc'],
-                segfaults = self.options['segfaults'],
-                timeout = self.options['timeout'],
-                verbose = self.options['verbose'],
-                debug = self.options['debug']
-            )
-            vlc.start()
+        # run VLC, retrying some more for compensating segfaults when doing alpha compositing - WTF!?
+        vlc = VlcSafeRunner(
+            args,
+            vlc_bin = self.options['vlc'],
+            segfaults = self.options['segfaults'],
+            timeout = self.options['timeout'],
+            verbose = self.options['verbose'],
+            debug = self.options['debug']
+        )
+        vlc.start()
 
 class VideoTwisterOverlay(VideoTwisterBase):
 
-    vlm_template = os.path.join(os.path.dirname(__file__), 'overlay_videos.vlm.tpl')
+    # http://stackoverflow.com/questions/1732619/packaging-resources-with-setuptools-distribute/1732741#1732741
+    vlm_template = pkg_resources.resource_stream('zt.vlc', 'overlay_videos.vlm.tpl').read()
 
     def mungle_options(self):
         """Convert some variables to their proper types"""
@@ -89,12 +96,15 @@ class VideoTwisterOverlay(VideoTwisterBase):
         self.options['timeout'] = float(self.options['timeout'])
         self.options['width'] = int(self.options['width'])
         self.options['height'] = int(self.options['height'])
+        self.options['watch'] = bool(self.options['watch'])
+        self.options['debug'] = bool(self.options['debug'])
+        self.options['verbose'] = bool(self.options['verbose'])
 
     def start(self):
         """Select VLM template for doing overlay stuff and run VLC."""
         self.automask()
         self.expandvlm()
-        self.run_vlc_with_vlm(self.vlm_template)
+        self.run_vlc_with_vlm()
 
     def automask(self):
         """
@@ -178,13 +188,6 @@ class BackgroundType(object):
             return self.VIDEO
 
 
-def setup_logging():
-    console = logging.StreamHandler()
-    console.setFormatter(logging.Formatter('%(name)-18s: %(levelname)-8s: %(message)s'))
-    logger = logging.getLogger()
-    logger.addHandler(console)
-    logger.setLevel(logging.INFO)
-
 def media_info(label, mediafile):
     print >>sys.stderr, "Media information (%s):" % label
     if BackgroundType.byfilename(mediafile) == BackgroundType.VIDEO:
@@ -204,12 +207,19 @@ def media_info(label, mediafile):
         print >>sys.stderr
 
 
+webify.filenames = ['output']
+webify.retval = 'output'
+
 @opterate
+#@abc(convert={'output': Converter.})
+#@server_daemon(filenames = ['output'])
+@webify
+@proxify(url_option = 'remote', filenames = ['background', 'overlay', 'maskfile'], retval = {'name': 'output', 'type': 'file'})
 def main(output, background, overlay,
-        vlc=None,
+        vlc='',
         angle=0, position_x=0, position_y=0,
-        maskfile=None, width=0, height=0,
-        watch=False, segfaults=20, timeout=120, verbose=False, debug=False):
+        maskfile='', width=0, height=0,
+        watch=False, segfaults=20, timeout=120, verbose=False, debug=False, remote=''):
     """
     Overlay videos with alpha compositing and rotation using VLM from VLC.
     
@@ -225,6 +235,7 @@ def main(output, background, overlay,
     @param timeout -t --timeout when to timeout and kill VLC (default: 120s)
     @param verbose -v --verbose Use this if something goes wrong: a) doesn't suppress stdout and stderr of vlc b) sends '--verbose=2' to vlc c) doesn't send '--quiet' to vlc
     @param debug -d --debug Use this if something goes wrong: a) log vlc command (even in non-verbose mode) b) keep temporary files (vlm, vlc log, mask)
+    @param remote -r --remote Use remote video processing service at given url
     """
 
     setup_logging()
