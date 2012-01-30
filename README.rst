@@ -23,13 +23,16 @@ Create and activate isolated python environment::
 Install prerequisites::
 
     pip install -r requirements.txt
+    python setup.py develop
 
 Show help::
 
-    cd src
-    ./vlctwist_example.sh --help
+    vlctwist --help
+
+Run daemon::
+
+    vlctwistd
 
 Run::
 
-    cd src
     ./vlctwist_example.sh

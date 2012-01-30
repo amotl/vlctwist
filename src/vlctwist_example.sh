@@ -4,14 +4,14 @@ export PYTHONPATH=`pwd`
 
 case "$1" in
      --help)
-           python zt/vlc/twister.py --help
+           vlctwist --help
            exit
            ;;
 esac
 
 
 # Usage: twister.py [options] output background overlay
-python zt/vlc/twister.py \
+vlctwist \
     "/tmp/vlctwist.mpg" \
 	"/Library/Dictionaries/New Oxford American Dictionary.dictionary/Contents/Images/surgical mask.png" \
     "/System/Library/Compositions/Fish.mov" \
