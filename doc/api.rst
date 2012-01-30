@@ -12,7 +12,7 @@ Valid request
 
 ::
 
-    POST /twist/v1 HTTP/1.0
+    POST /twist/v1/mosaic HTTP/1.0
     content-type: multipart/form-data; boundary="===============0397538362560721606=="
     content-length: 27902144
 
