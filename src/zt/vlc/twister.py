@@ -260,8 +260,8 @@ def main(output, background, overlay,
                                 a) log vlc command (even in non-verbose mode)
                                 b) keep temporary files (vlm, vlc log, mask)
     @param remote -r --remote Use remote video processing service at given url
-    """
 
+    """
     setup_logging()
     if verbose:
         logger.setLevel(logging.DEBUG)

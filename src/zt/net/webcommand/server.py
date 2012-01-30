@@ -29,6 +29,7 @@ from wsgiref.simple_server import make_server
 import cgi
 import base64
 import mimetypes
+from opterator import opterate
 from zt.util.log import setup_logging
 
 
@@ -245,15 +246,25 @@ def webify(func):
     return func
 
 
-def main():
-    setup_logging()
+@opterate
+def main(port=8001, verbose=False):
+    """
+    Overlay videos with alpha compositing and rotation using VLM from VLC.
+
+    @param port -p --port Port to listen on
+    @param verbose -v --verbose More output
+
+    """
+    loglevel = verbose and logging.DEBUG or logging.INFO
+    setup_logging(loglevel)
+    logger.setLevel(loglevel)
     # TODO: make this configurable to decouple
     # zt.net.webcommand completely from zt.vlc
     __import__('zt.vlc.twister')
     logger.info("Starting web server on port 8001")
     #app = get_app(globals())
     app = get_app({'WebTwister': WebTwister})
-    make_server('', 8001, app).serve_forever()
+    make_server('', int(port), app).serve_forever()
 
 if __name__ == '__main__':
     main()

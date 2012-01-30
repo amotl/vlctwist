@@ -99,8 +99,8 @@ def proxify(url_option='', filenames=None, retval=None):
             error_description = ''
             if 'text/' in response_content_type:
                 error_description = payload
-            logger.error('Got invalid response (%s %s), error="%s", ' + \
-                'length="%s", content-type="%s"' % \
+            logger.error(('Got invalid response (%s %s), error="%s", ' + \
+                'length="%s", content-type="%s"') % \
                 (errcode, errmsg, error_description, len(payload),
                 response_content_type))
 
