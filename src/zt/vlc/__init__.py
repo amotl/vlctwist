@@ -6,5 +6,6 @@ except ImportError:
 
 
 def find_vlc():
-    # FIXME: actually search for the executable, maybe prefer ``cvlc`` instead of ``vlc``.
+    # FIXME: actually search for the executable,
+    # maybe prefer ``cvlc`` instead of ``vlc``.
     return '/Applications/VLC.app/Contents/MacOS/VLC'

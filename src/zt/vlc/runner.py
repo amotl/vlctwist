@@ -27,10 +27,12 @@ from zt.util.tail import Monitor
 
 logger = logging.getLogger(__name__)
 
+
 class VlcRunner(object):
     """Run VLC"""
 
-    def __init__(self, command_args, vlc_bin = None, timeout = 120, verbose = False, debug = False, error_on_segfault = True):
+    def __init__(self, command_args, vlc_bin=None, timeout=120, \
+        verbose=False, debug=False, error_on_segfault=True):
 
         # specific command line arguments to pass to VLC
         self.command_args = command_args
@@ -61,7 +63,7 @@ class VlcRunner(object):
 
         # for monitoring VLC's log file
         self.logmonitor = None
-        self.logfile = NamedTemporaryFile(delete = not self.debug)
+        self.logfile = NamedTemporaryFile(delete=not self.debug)
 
         # time keeping
         self.begin = 0
@@ -73,10 +75,9 @@ class VlcRunner(object):
         # whether to error or warn on segfault
         self.error_on_segfault = error_on_segfault
 
-
     def start(self):
         """Start process runner thread and timer for timeout."""
-        self.thread = threading.Thread(target = self.run_process)
+        self.thread = threading.Thread(target=self.run_process)
         self.thread.start()
         self.timer = threading.Timer(self.timeout, self.stop_timeout)
         self.timer.start()
@@ -89,13 +90,16 @@ class VlcRunner(object):
         """
         base_options = [
             '--play-and-exit',
-            '--no-video-title', '--no-media-library', '--no-sub-autodetect-file',
-            '--no-sout-transcode-hurry-up', '--no-drop-late-frames', '--no-skip-frames', '--no-autoscale',
+            '--no-video-title', '--no-media-library',
+            '--no-sub-autodetect-file',
+            '--no-sout-transcode-hurry-up', '--no-drop-late-frames',
+            '--no-skip-frames', '--no-autoscale',
         ]
         logging_options = [
             '--file-logging', '--logfile', self.logfile.name,
             # --verbose-objects=+input,-all
-            '--log-verbose', '3', '--verbose-objects', '-all,+main,+mux_ps,+access_output_file',
+            '--log-verbose', '3',
+            '--verbose-objects', '-all,+main,+mux_ps,+access_output_file',
         ]
 
         extra_options = []
@@ -103,8 +107,9 @@ class VlcRunner(object):
             extra_options += ['--verbose', '2']
         else:
             extra_options += ['--quiet']
-    
-        cmd = [self.vlc_bin] + base_options + logging_options + extra_options + self.command_args
+
+        cmd = [self.vlc_bin] + base_options + logging_options + \
+            extra_options + self.command_args
         cmd += ['vlc://quit']
 
         return cmd
@@ -131,12 +136,13 @@ class VlcRunner(object):
                 'stderr': subprocess.PIPE,
             })
         self.process = subprocess.Popen(command, **popenargs)
-        
+
         # watch VLC's logfile for this line, then kill it
         # some possible exit messages:
         #   - mux_ps: Close
         #   - main debug: dead input
-        #   - main vlm daemon error: Load error on line 32: setup: Wrong command syntax
+        #   - main vlm daemon error: Load error on line 32:
+        #                                       setup: Wrong command syntax
         #   - main libvlc warning: error while loading the configuration file
         def found(line):
             self.stop()
@@ -146,7 +152,7 @@ class VlcRunner(object):
         self.process.communicate()
         self.returncode = self.process.returncode
         self.finish = time.time()
-        
+
         # exit code: 15=terminate, 9=kill
         self.success = \
             (self.returncode == 0) \
@@ -154,7 +160,7 @@ class VlcRunner(object):
 
         self._log_outcome()
         self._shutdown()
-    
+
     def _log_outcome(self):
 
         if self.success and not self.timeout_occurred:
@@ -176,30 +182,28 @@ class VlcRunner(object):
                 logmethod = logger.warn
 
         duration = self.finish - self.begin
-        outcome_info = "returncode=%s, duration=%02ds" % (self.returncode, duration)
+        outcome_info = "returncode=%s, duration=%02ds" % \
+            (self.returncode, duration)
         logmethod("%s: %s   %s" % (outcome_msg, outcome_info, analysis))
-
-
 
     def complete(self):
         """Wait for process runner thread to finish.
-        
+
         Returns:
             the unix exit status of the process
-        
+
         """
         self.thread.join()
         return self.returncode
 
-
-    def stop(self, regular = True):
+    def stop(self, regular=True):
         """Stop VLC:
-        
+
             - shuts down internal infrastructure (log monitor, time)
             - try to terminate the process
             - wait a second
             - try to kill the process
-        
+
         """
         self._shutdown()
         if regular:
@@ -214,14 +218,12 @@ class VlcRunner(object):
         except OSError, ex:
             logger.warn("Terminating VLC failed: %s" % ex)
 
-
     def stop_timeout(self):
         """Stop VLC indicating a timeout occurred."""
-        
-        self.timeout_occurred = True
-        logger.error('VLC timed out after %s seconds (VLC did not finish in time).' % self.timeout)
-        self.stop(regular = False)
 
+        self.timeout_occurred = True
+        logger.error('VLC timed out after %s seconds' % self.timeout)
+        self.stop(regular=False)
 
     def _shutdown(self):
         self.logmonitor.quit()
@@ -248,13 +250,15 @@ class VlcSafeRunner(object):
 
         self.kwargs = kwargs
 
-    def start(self):        
-        logger.info("VlcSafeRunner: Starting with compensating a maximum of %s segfaults" % self.segfaults)
+    def start(self):
+        logger.info("VlcSafeRunner: Compensating a maximum of %s segfaults" \
+            % self.segfaults)
         for i in range(self.segfaults):
             vlcrunner = VlcRunner(*self.args, **self.kwargs)
             vlcrunner.start()
             returncode = vlcrunner.complete()
             if returncode != -11:
-                logger.info("VlcSafeRunner: Finishing having compensated %s segfaults" % i)
+                logger.info("VlcSafeRunner: Compensated %s segfaults" % i)
                 return
-        logger.error("VlcSafeRunner: Failed after %s segfaults" % self.segfaults)
+        logger.error("VlcSafeRunner: Failed after %s segfaults" % \
+            self.segfaults)

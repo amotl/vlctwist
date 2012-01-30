@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-"""Send the contents of a directory as a MIME message."""
+"""Builds a multipart MIME message."""
 # http://docs.python.org/library/email-examples.html
 
 import os
 import sys
-import smtplib
+import email
 # For guessing MIME type based on file name extension
 import mimetypes
 
@@ -17,14 +17,15 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+
 def get_message_multipart(entries):
 
     #outer = MIMEMultipart()
     outer = MIMEMultipart('form-data')
 
     for entry in entries:
-        
-        if entry.has_key('file'):
+
+        if 'file' in entry:
             name = entry['name']
             path = entry['file']
             if not os.path.isfile(path):
@@ -44,19 +45,14 @@ def get_message_multipart(entries):
 
     del outer['MIME-Version']
     content_type = outer['Content-Type']
-    #print content_type
-    #print dir(content_type)
-    #del outer['Content-Type']
-
-    #print "outer.preamble:", outer.preamble
-    #print "_headers:", outer._headers
 
     composed = outer.as_string()
     #print "composed:\n", composed
-    
+
     replstr = ''
     for sep in ['\n\t', ' ']:
-        replstr = 'Content-Type: %s;%sboundary="%s"' % (content_type, sep, outer.get_boundary())
+        replstr = 'Content-Type: %s;%sboundary="%s"' % \
+            (content_type, sep, outer.get_boundary())
         #print "replstr:", replstr
         composed = composed.replace(replstr, '')
 
@@ -64,14 +60,13 @@ def get_message_multipart(entries):
     composed = composed.lstrip()
     return content_type.split(' ', 1)[1], composed
 
+
 def get_message_variable(name, value):
-    #msg = MIMEBase('application', 'x-www-form-urlencoded')
-    msg = MIMEBase('application', 'x-www-form-urlencoded')
     msg = MIMEBase()
-    #msg.set_default_type('')
     msg.set_payload(value)
-    msg.add_header('Content-Disposition', 'form-data', name = name)
+    msg.add_header('Content-Disposition', 'form-data', name=name)
     return msg
+
 
 def get_message_file(name, path):
     # Guess the content type based on the file's extension.  Encoding
@@ -104,11 +99,10 @@ def get_message_file(name, path):
         # Encode the payload using Base64
         encoders.encode_base64(msg)
     filename = os.path.basename(path)
-    msg.add_header('Content-Disposition', 'attachment', name = name, filename = filename)
+    msg.add_header('Content-Disposition', 'attachment',
+        name=name, filename=filename)
     return msg
 
-import email
-#from email import message
 
 class MIMEBase(email.message.Message):
     """Base class for MIME specializations."""
@@ -126,9 +120,11 @@ class MIMEBase(email.message.Message):
             self.add_header('Content-Type', ctype, **_params)
         #self['MIME-Version'] = '1.0'
 
+
 def monkeypatch():
     email.mime.base.MIMEBase = MIMEBase
 monkeypatch()
+
 
 if __name__ == '__main__':
     main()

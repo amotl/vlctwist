@@ -25,7 +25,7 @@ from zt.vlc import find_vlc
 """
 # Parse information from STDERR, i.e.:
 [0x100600e28] [dumpmeta] lua interface: name: Fish.mov
-[0x100600e28] [dumpmeta] lua interface: uri: file:///System/Library/Compositions/Fish.mov
+[0x100600e28] [dumpmeta] lua interface: uri: file:///...
 [0x100600e28] [dumpmeta] lua interface: duration: 13.266666
 [0x100600e28] [dumpmeta] lua interface: meta data:
 [0x100600e28] [dumpmeta] lua interface:   filename: Fish.mov
@@ -39,16 +39,19 @@ from zt.vlc import find_vlc
 [0x100600e28] [dumpmeta] lua interface:     Resolution: 640x480
 """
 
+
 class VideoInfo(object):
 
-    def __init__(self, videofile, vlc_bin = None):
+    def __init__(self, videofile, vlc_bin=None):
         self.videofile = videofile
         self.vlc_bin = vlc_bin or find_vlc()
         cmd = \
             [self.vlc_bin] + \
-            shlex.split('--intf lua --lua-intf dumpmeta --no-video-title --no-media-library -V dummy -A dummy') + \
+            shlex.split('--intf lua --lua-intf dumpmeta --no-video-title ' + \
+                '--no-media-library -V dummy -A dummy') + \
             [self.videofile, 'vlc://quit']
-        process = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.stdout, self.stderr = process.communicate()
 
     @property
@@ -67,4 +70,5 @@ class VideoInfo(object):
         if m:
             return map(int, m.group(1).split('x'))
         else:
-            raise LookupError('Could not grok size from video information, video="%s"' % self.videofile)
+            raise LookupError('Could not grok size from video ' + \
+                'information, video="%s"' % self.videofile)

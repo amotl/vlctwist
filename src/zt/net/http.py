@@ -1,9 +1,11 @@
 import httplib
 import urlparse
 
+
 def posturl(url, content_type, message):
     urlparts = urlparse.urlsplit(url)
     return _posturl(urlparts[1], urlparts[2], content_type, message)
+
 
 def _posturl(host, selector, content_type, request_body):
     """

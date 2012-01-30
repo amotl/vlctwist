@@ -16,9 +16,12 @@
 #
 ##############################################################################
 
-import os, sys
+
+import os
+import sys
 import time
 from threading import Thread
+
 
 class Tail(object):
     """
@@ -40,7 +43,7 @@ class Tail(object):
 
     """
 
-    def __init__(self, filename, callback, out = None):
+    def __init__(self, filename, callback, out=None):
         """
         Create Tail object
 
@@ -49,14 +52,14 @@ class Tail(object):
             callback -- will be called for each line
 
         Keyword arguments:
-            out      -- a writable stream, lines will be printed to (for debugging)
+            out      -- a writable stream, lines will be printed to (debugging)
 
         """
         self.filename = filename
         self.callback = callback
         self.out = out
         self.killswitch = False
-        self.thread = Thread(target = self.logtail)
+        self.thread = Thread(target=self.logtail)
         self.thread.start()
 
     def logtail(self):
@@ -100,7 +103,7 @@ class Monitor(object):
 
     """
 
-    def __init__(self, filename, pattern, callback, out = None):
+    def __init__(self, filename, pattern, callback, out=None):
         """
         Create Monitor object, start underlying Tail
 
@@ -110,13 +113,13 @@ class Monitor(object):
             callback -- will be called for each line
 
         Keyword arguments:
-            out      -- a writable stream, lines will be printed to (for debugging)
+            out      -- a writable stream, lines will be printed to (debugging)
 
         """
         self.pattern = pattern
         self.callback = callback
         self.tail = Tail(filename, self.check_line, out)
-    
+
     def check_line(self, line):
         """
         If pattern matched, quit monitor and call callback

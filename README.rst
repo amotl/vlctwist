@@ -2,6 +2,9 @@
 vlctwist
 ========
 
+.. contents::
+    :depth: 2
+    :local:
 
 About
 -----
@@ -11,6 +14,7 @@ Overlay videos with `alpha compositing`_ and rotation_ using VLM_ from VLC_.
 .. _rotation: http://en.wikipedia.org/wiki/Rotation
 .. _VLC: http://www.videolan.org/
 .. _VLM: http://wiki.videolan.org/Documentation:Streaming_HowTo/VLM
+
 
 Getting started
 ---------------
@@ -36,3 +40,12 @@ Run daemon::
 Run::
 
     ./vlctwist_example.sh
+
+
+Development
+-----------
+
+Code style checks::
+
+    pip install pep8
+    pep8 --repeat src/

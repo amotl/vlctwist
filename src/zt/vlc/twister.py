@@ -16,13 +16,16 @@
 #
 ##############################################################################
 
-import os, sys
+
+import os
+import sys
 import time
 import logging
 from string import Template
 from tempfile import NamedTemporaryFile
 from PIL import Image
-import pkg_resources
+from pkg_resources import resource_stream
+import mimetypes
 
 from opterator import opterate
 from zt.net.webcommand.server import webify
@@ -34,6 +37,7 @@ from zt.vlc.videoinfo import VideoInfo
 from zt.graphics.alpha import AlphaMask
 
 logger = logging.getLogger(__name__)
+
 
 class VideoTwisterBase(object):
 
@@ -59,7 +63,7 @@ class VideoTwisterBase(object):
         vlmdata = Template(vlmdata).safe_substitute(self.options)
 
         # write VLM file to disk
-        vlmfile = NamedTemporaryFile(delete = not self.options['debug'])
+        vlmfile = NamedTemporaryFile(delete=not self.options['debug'])
         vlmfile.write(vlmdata)
         vlmfile.flush()
 
@@ -71,23 +75,26 @@ class VideoTwisterBase(object):
             args += ['--intf', 'dummy']
 
         # run VLC
-        #vlc = VlcRunner(cmd, self.options['vlc'], verbose = self.options['verbose'])
+        #vlc = VlcRunner(cmd, self.options['vlc'], \
+        #   verbose = self.options['verbose'])
 
-        # run VLC, retrying some more for compensating segfaults when doing alpha compositing - WTF!?
+        # run VLC, compensating for segfaults
+        # when doing alpha compositing - WTF!?
         vlc = VlcSafeRunner(
             args,
-            vlc_bin = self.options['vlc'],
-            segfaults = self.options['segfaults'],
-            timeout = self.options['timeout'],
-            verbose = self.options['verbose'],
-            debug = self.options['debug']
+            vlc_bin=self.options['vlc'],
+            segfaults=self.options['segfaults'],
+            timeout=self.options['timeout'],
+            verbose=self.options['verbose'],
+            debug=self.options['debug']
         )
         vlc.start()
+
 
 class VideoTwisterOverlay(VideoTwisterBase):
 
     # http://stackoverflow.com/questions/1732619/packaging-resources-with-setuptools-distribute/1732741#1732741
-    vlm_template = pkg_resources.resource_stream('zt.vlc', 'overlay_videos.vlm.tpl').read()
+    vlm_template = resource_stream('zt.vlc', 'overlay_videos.vlm.tpl').read()
 
     def mungle_options(self):
         """Convert some variables to their proper types"""
@@ -124,7 +131,8 @@ class VideoTwisterOverlay(VideoTwisterBase):
             self.alphamask = AlphaMask(mask_size)
             self.alphamask.rectangle()
             self.alphamask.rotate(self.options['angle'])
-            self.options['maskfile'] = self.alphamask.save(delete = not self.options['debug'])
+            self.options['maskfile'] = \
+                self.alphamask.save(delete=not self.options['debug'])
 
     def expandvlm(self):
         """Compute some additional options to be passed to VLM template.
@@ -161,7 +169,8 @@ class VideoTwisterOverlay(VideoTwisterBase):
         self.options['input_channel'] = input_channel
 
         # whether to display the result in vlc
-        self.options['display'] = self.options['watch'] and ',dst=display' or ''
+        self.options['display'] = \
+            self.options['watch'] and ',dst=display' or ''
 
     @property
     def mask_size(self):
@@ -177,15 +186,19 @@ class VideoTwisterOverlay(VideoTwisterBase):
 
 class BackgroundType(object):
 
+    NONE = 0
     VIDEO = 1
     IMAGE = 2
 
     @classmethod
     def byfilename(self, filename):
-        if filename.endswith('.png') or filename.endswith('.jpg') or filename.endswith('.tif') or filename.endswith('.gif'):
+        mimetype_main = mimetypes.guess_type(filename)[0].split('/', 1)[0]
+        if mimetype_main == 'image':
             return self.IMAGE
-        else:
+        elif mimetype_main == 'video':
             return self.VIDEO
+        else:
+            return self.NONE
 
 
 def media_info(label, mediafile):
@@ -210,19 +223,23 @@ def media_info(label, mediafile):
 webify.filenames = ['output']
 webify.retval = 'output'
 
+
 @opterate
 #@abc(convert={'output': Converter.})
 #@server_daemon(filenames = ['output'])
 @webify
-@proxify(url_option = 'remote', filenames = ['background', 'overlay', 'maskfile'], retval = {'name': 'output', 'type': 'file'})
+@proxify(url_option='remote',
+    filenames=['background', 'overlay', 'maskfile'],
+    retval={'name': 'output', 'type': 'file'})
 def main(output, background, overlay,
         vlc='',
         angle=0, position_x=0, position_y=0,
         maskfile='', width=0, height=0,
-        watch=False, segfaults=20, timeout=120, verbose=False, debug=False, remote=''):
+        watch=False, segfaults=20, timeout=120,
+        verbose=False, debug=False, remote=''):
     """
     Overlay videos with alpha compositing and rotation using VLM from VLC.
-    
+
     @param vlc -V --vlc path to vlc executable
     @param position_x -x --position-x x-position of the overlay (default: 0)
     @param position_y -y --position-y y-position of the overlay (default: 0)
@@ -230,11 +247,18 @@ def main(output, background, overlay,
     @param height -H --height height of the overlay (default: original size)
     @param angle -a --angle which angle to rotate the overlay (default: 0)
     @param maskfile -m --mask overlay alpha mask image (optional)
-    @param watch -w --watch whether to display the result in vlc (default: false)
-    @param segfaults -s --segfaults how many segfaults to compensate for (default: 20)
+    @param watch -w --watch whether to display the result in vlc
+                                                            (default: false)
+    @param segfaults -s --segfaults how many segfaults to compensate for
+                                                                (default: 20)
     @param timeout -t --timeout when to timeout and kill VLC (default: 120s)
-    @param verbose -v --verbose Use this if something goes wrong: a) doesn't suppress stdout and stderr of vlc b) sends '--verbose=2' to vlc c) doesn't send '--quiet' to vlc
-    @param debug -d --debug Use this if something goes wrong: a) log vlc command (even in non-verbose mode) b) keep temporary files (vlm, vlc log, mask)
+    @param verbose -v --verbose Use this if something goes wrong:
+                                a) doesn't suppress stdout and stderr of vlc
+                                b) sends '--verbose=2' to vlc
+                                c) doesn't send '--quiet' to vlc
+    @param debug -d --debug Use this if something goes wrong:
+                                a) log vlc command (even in non-verbose mode)
+                                b) keep temporary files (vlm, vlc log, mask)
     @param remote -r --remote Use remote video processing service at given url
     """
 
@@ -243,7 +267,11 @@ def main(output, background, overlay,
         logger.setLevel(logging.DEBUG)
     logger.info("zt.vlc.twister starting")
     options = locals()
-    options.update({'output': output, 'background': background, 'overlay': overlay})
+    options.update({
+        'output': output,
+        'background': background,
+        'overlay': overlay,
+    })
 
     if verbose or debug:
         media_info('background', options['background'])
