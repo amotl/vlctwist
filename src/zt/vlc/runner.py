@@ -110,7 +110,7 @@ class VlcRunner(object):
 
         cmd = [self.vlc_bin] + base_options + logging_options + \
             extra_options + self.command_args
-        cmd += ['vlc://quit']
+        #cmd += ['vlc://quit']
 
         return cmd
 

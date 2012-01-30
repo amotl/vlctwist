@@ -5,7 +5,15 @@ except ImportError:
     pass
 
 
+import os
+
+vlc_locations = [
+    '/usr/bin/vlc',
+    '/Applications/VLC.app/Contents/MacOS/VLC',
+]
+
 def find_vlc():
-    # FIXME: actually search for the executable,
-    # maybe prefer ``cvlc`` instead of ``vlc``.
-    return '/Applications/VLC.app/Contents/MacOS/VLC'
+    # FIXME: maybe prefer ``cvlc`` instead of ``vlc``.
+    for vlc in vlc_locations:
+        if os.path.isfile(vlc):
+            return vlc
