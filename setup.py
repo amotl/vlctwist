@@ -24,7 +24,7 @@ setup (
         ]
     ),
     install_requires = [
-        'setuptools',
+        'setuptools>=0.6c9',
         'decorator==3.3.2',
         'PIL==1.1.7',
         'WsgiService==0.3',
