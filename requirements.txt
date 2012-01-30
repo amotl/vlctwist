@@ -1,0 +1,5 @@
+# TODO: http://cburgmer.posterous.com/pip-requirementstxt-and-setuppy
+decorator==3.3.2
+git+git://github.com/amotl/opterator.git
+PIL==1.1.7
+WsgiService==0.3

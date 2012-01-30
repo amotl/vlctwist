@@ -22,9 +22,7 @@ Create and activate isolated python environment::
 
 Install prerequisites::
 
-    pip install git+git://github.com/amotl/opterator.git
-    pip install PIL
-
+    pip install -r requirements.txt
 
 Show help::
 
