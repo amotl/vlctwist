@@ -1,7 +1,5 @@
 #!/bin/bash
 
-export PYTHONPATH=`pwd`
-
 case "$1" in
      --help)
            vlctwist --help
